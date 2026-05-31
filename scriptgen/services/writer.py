@@ -34,7 +34,8 @@ HOOK RULES:
 
 BODY RULES:
 - First sentence must be NEW information — never restate the hook
-- No fluff transitions: "But here's the catch", "Here's the thing", "Now this is where it gets crazy" — go straight to the fact
+- No fluff transitions: "But here's the catch", "But here's the twist", "Here's the thing", "Now this is where it gets crazy", "Here's what's really wild", "Here's what's making this" — go straight to the fact
+- No unpronounceable or obscure words — if Nick can't say it naturally on camera, rephrase it (e.g., "apophenia", "Bundibugyo", "DRC" = bad)
 - Don't isolate individuals in global stories — scale is what stops the scroll
 - No unpronounceable words (Bundibugyo, Johannesburg, Tenerife = bad; Congo, Spain = good)
 - Don't bring up facts you immediately undercut ("there's a $250K fine... but nobody's ever been charged")

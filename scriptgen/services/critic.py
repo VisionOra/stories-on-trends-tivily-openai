@@ -19,7 +19,7 @@ ARTEMIS VOICE CHECK:
 
 ADDITIONAL HARD CHECKS:
 1. CNN TEST: Could this hook or any sentence appear as a news chyron? If yes, it fails.
-2. FLUFF TEST: Any transition phrase that adds no information? ("But here's the catch", "Here's the thing", "Now this is where it gets crazy", "Here's what's really wild") = instant cut.
+2. FLUFF TEST: Any transition phrase that adds no information? ("But here's the catch", "But here's the twist", "Here's the thing", "Now this is where it gets crazy", "Here's what's really wild", "Here's what's making this", "But here's what's really crazy") = instant cut.
 3. HOOK RESTATEMENT: Does the first sentence of the body restate what the hook already said? If yes, it fails.
 4. PRONUNCIATION: Any word Nick can't say naturally on camera? (technical terms, hard-to-pronounce place names, acronyms like DRC)
 5. SENTENCE LENGTH: Every sentence must be 12-25 words. Under 10 = jarring rapid cuts. Over 25 = run-on.
