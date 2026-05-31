@@ -48,12 +48,41 @@ OUTRO RULES:
 REACTION VOCABULARY (use sparingly, naturally):
 HELLO? / OKAYYY / SO THAT'S INSANE? / DUDE
 
+REFERENCE SCRIPTS — match this voice EXACTLY. Study the tone, structure, sentence length, and energy:
+{few_shot_examples}
+
 {few_shot_section}
 
 Write a script for this story using ONLY these verified facts:
 {research_brief}
 
 Output the script ONLY in the exact format above. Nothing else."""
+
+FEW_SHOT_EXAMPLES = """
+=== APPROVED SCRIPT 1: Military Draft ===
+HOOK: The government just passed a law where every guy in America between 18 and 26 gets put on the military draft list, and it officially starts this December.
+TEXT: MILITARY DRAFT? 🇺🇸🚨
+BODY: The way it works is they pull your info from Social Security, the IRS, and your DMV. Within 30 days of turning 18, you're just on the list. Then you get a letter in the mail saying you've been registered. HELLO? They signed this back in December, but the reason everyone is freaking out right now is because of what's happening with Iran. Peace talks just collapsed, there's a Navy blockade on Iranian oil. And in the middle of all that, the government is making sure they know where every single guy in the country is. The reason it passed is because guys just stopped signing up, so the government decided to just do it for them. Nobody's saying the Iran thing and the draft thing are connected, but the timing is wild. Now this does NOT mean there's a draft, Congress hasn't voted for one since Vietnam. But the government just made sure they know exactly where every guy in the country is if they ever need one.
+OUTRO: They send you a letter AFTER you're already on the list. Appreciate the heads up.
+
+=== APPROVED SCRIPT 2: Missing Scientists ===
+HOOK: The FBI, the Pentagon, the White House, and Congress are all investigating the same exact thing right now — there are scientists connected to NASA and America's most classified programs that keep going missing, and the details are insane.
+TEXT: WHO WERE THEY? 🚨
+BODY: A NASA rocket scientist co-invented a classified metal for rocket engines that was designed to end America's dependence on Russian rockets. Her name was Monica Reza, she vanished on a hike in California, and has never been found. A 34-year-old scientist was working on zero-point energy — which is basically the idea of producing unlimited free energy that would never run out. She texted a friend "if you see any report that I did this to myself, I most definitely did not." Her name was Amy Eskridge, and she was gone a month later. An Air Force general ran the base where people believe the US government stored wreckage from a UFO that crashed in Roswell in 1947. In leaked emails, the singer of Blink-182 said this general was "very, very aware" of classified material, and a congressman tried to reach him about UFOs TWICE before he vanished. HELLO? On Kalshi, $15 million is riding on whether the government confirms aliens exist before 2027, and 21% of people think it will.
+OUTRO: I'm staying on this story, so make sure you add me because I'm going to keep you updated.
+
+=== APPROVED SCRIPT 3: Ebola Outbreak ===
+HOOK: An Ebola outbreak was just declared a global health emergency, and as of today the United States just banned travel from three countries because of it.
+TEXT: EBOLA 🚨
+BODY: So since we last talked about this, it just crossed 1,000 confirmed cases in Congo and it's still climbing every single day. The WHO just upgraded the risk level to very high, which is one step below a full global emergency. The US just banned green cards from Congo and Uganda, which is something they didn't even do during COVID. That's how serious this is getting right now. Uganda already has 7 confirmed cases including 2 healthcare workers who got it while treating patients. Locals genuinely believe Ebola isn't real, and they've burned down 3 treatment centers and attacked Red Cross workers trying to help. 18 patients literally went MISSING after one of the centers was destroyed, and nobody knows where they are right now. SO THAT'S INSANE? They've banned all gatherings over 50 people in affected areas and deployed armed soldiers to protect health workers. And only 1 in 5 people who had contact with a confirmed case have actually been tracked down. OKAYYY.
+OUTRO: I'm staying on this — make sure you add me so you don't miss the next update.
+
+=== APPROVED SCRIPT 4: Hantavirus Cruise Ship ===
+HOOK: The WHO just confirmed they suspect a rare virus is spreading person to person on a cruise ship stuck in the Atlantic — and no country will let it dock.
+TEXT: CRUISE SHIP 🚢
+BODY: There are 149 people from 23 different countries trapped on this ship right now. Three passengers are already gone, one is in intensive care, and there are at least three more suspected cases on board with two crew members showing symptoms right now. The WHO said today they believe it's spreading between people on the ship, and only one strain in history has ever done that. There's no cure, there's no treatment, and there's no vaccine. People are taking this so seriously right now that on Kalshi, over $30,000 is riding on whether there's going to be a hantavirus outbreak this year. The ship tried to dock in two different countries and both of them said no. It's currently headed toward Spain, and Spain hasn't confirmed whether they'll let it in.
+OUTRO: I'm staying on this — make sure you add me so you don't miss the next update.
+"""
 
 REWRITE_PROMPT = """The critic found these problems with your script:
 
@@ -102,6 +131,7 @@ def _build_system_prompt(config, research_brief_text):
         min_sentence=config.min_sentence_words,
         max_sentence=config.max_sentence_words,
         banned_words=", ".join(config.banned_words) if config.banned_words else "(none configured)",
+        few_shot_examples=FEW_SHOT_EXAMPLES,
         few_shot_section=few_shot,
         research_brief=research_brief_text,
     )
