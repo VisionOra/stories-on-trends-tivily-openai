@@ -1,0 +1,256 @@
+{% extends "scriptgen/base.html" %}
+{% block title %}Trends — Nick Scripts{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-3xl font-bold">Trending Topics</h1>
+        <p class="text-gray-400 mt-1">
+            {% if last_fetch_at %}
+                Last updated {{ last_fetch_at|timesince }} ago
+                via <span class="{% if provider == 'Tavily' %}text-green-400{% else %}text-yellow-400{% endif %}">{{ provider }}</span>
+                {% if is_stale %}<span class="text-yellow-400 ml-1">(stale — over 24h)</span>{% endif %}
+            {% else %}
+                Never fetched
+            {% endif %}
+            &middot; {{ total_count }} active trends
+        </p>
+    </div>
+    <button id="refresh-btn" onclick="refreshTrends()"
+        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-medium transition flex items-center gap-2">
+        <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <span id="refresh-text">Refresh Trends</span>
+    </button>
+</div>
+
+{% if main_trends %}
+<!-- Main Trends -->
+<div class="mb-10">
+    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+        Trending Now
+        <span class="text-sm font-normal text-gray-500">({{ main_trends|length }})</span>
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {% for trend in main_trends %}
+        <div class="group bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl p-4 transition cursor-pointer relative">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2 min-w-0">
+                    <h3 class="font-semibold text-white text-base truncate">{{ trend.keyword }}</h3>
+                    <span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider
+                        {% if trend.source == 'tavily' %}bg-green-900/40 text-green-500
+                        {% else %}bg-yellow-900/40 text-yellow-500{% endif %}">
+                        {{ trend.source }}
+                    </span>
+                </div>
+                <span class="text-xs text-gray-500 shrink-0 ml-2">{{ trend.captured_at|timesince }} ago</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex-1 bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-500
+                        {% if trend.score >= 80 %}bg-gradient-to-r from-red-500 to-orange-400
+                        {% elif trend.score >= 50 %}bg-gradient-to-r from-yellow-500 to-amber-400
+                        {% elif trend.score >= 25 %}bg-gradient-to-r from-blue-500 to-cyan-400
+                        {% else %}bg-gradient-to-r from-gray-500 to-gray-400{% endif %}"
+                        style="width: {% widthratio trend.score max_score 100 %}%"></div>
+                </div>
+                <span class="text-sm font-mono font-bold min-w-[3rem] text-right
+                    {% if trend.score >= 80 %}text-red-400
+                    {% elif trend.score >= 50 %}text-yellow-400
+                    {% elif trend.score >= 25 %}text-blue-400
+                    {% else %}text-gray-400{% endif %}">
+                    {{ trend.score|floatformat:0 }}
+                </span>
+            </div>
+            <!-- Generate overlay on hover -->
+            <div class="absolute inset-0 bg-gray-900/90 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="event.stopPropagation(); generateFromTrend({{ trend.pk }}, '{{ trend.keyword|escapejs }}')"
+                    class="px-5 py-2.5 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Generate Script
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if related_trends %}
+<!-- Related / Rising Trends -->
+<div class="mb-10">
+    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+        Related &amp; Rising
+        <span class="text-sm font-normal text-gray-500">({{ related_trends|length }})</span>
+    </h2>
+    <div class="flex flex-wrap gap-2">
+        {% for trend in related_trends %}
+        <button onclick="generateFromTrend({{ trend.pk }}, '{{ trend.keyword|escapejs }}')"
+            class="group px-4 py-2.5 bg-gray-900 border border-gray-800 hover:border-purple-500/50 rounded-xl text-sm transition flex items-center gap-2.5">
+            <span class="text-gray-200">{{ trend.keyword }}</span>
+            <span class="text-xs font-mono px-1.5 py-0.5 rounded
+                {% if trend.score >= 80 %}bg-red-900/50 text-red-300
+                {% elif trend.score >= 50 %}bg-orange-900/50 text-orange-300
+                {% elif trend.score >= 25 %}bg-purple-900/50 text-purple-300
+                {% else %}bg-gray-800 text-gray-400{% endif %}">
+                {{ trend.score|floatformat:0 }}
+            </span>
+            <span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider
+                {% if trend.source == 'tavily_answer' %}bg-green-900/40 text-green-500
+                {% else %}bg-yellow-900/40 text-yellow-500{% endif %}">
+                {{ trend.source }}
+            </span>
+            <svg class="w-3.5 h-3.5 text-gray-600 group-hover:text-green-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </button>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if not main_trends and not related_trends %}
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
+    <div class="text-5xl mb-4 opacity-30">&#128200;</div>
+    <p class="text-gray-400 text-lg">No trends fetched yet.</p>
+    <p class="text-gray-600 mt-2">Click <strong>Refresh Trends</strong> to fetch trending topics via Tavily.</p>
+</div>
+{% endif %}
+
+{% if stale_trends %}
+<div class="mt-10">
+    <details>
+        <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-300 mb-4">
+            Show {{ stale_trends|length }} older trends (&gt;24h)
+        </summary>
+        <div class="flex flex-wrap gap-2">
+            {% for trend in stale_trends %}
+            <span class="px-3 py-1.5 bg-gray-900/50 border border-gray-800/50 rounded-lg text-xs text-gray-500">
+                {{ trend.keyword }} <span class="text-gray-700">{{ trend.score|floatformat:0 }}</span>
+            </span>
+            {% endfor %}
+        </div>
+    </details>
+</div>
+{% endif %}
+
+<!-- Generation Modal -->
+<div id="gen-modal-backdrop" class="fixed inset-0 bg-black/70 z-40 hidden"></div>
+<div id="gen-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl p-8 text-center">
+        <div id="gen-spinner" class="mb-5">
+            <div class="inline-block w-10 h-10 border-3 border-gray-700 border-t-green-400 rounded-full animate-spin" style="border-width: 3px;"></div>
+        </div>
+        <h3 id="gen-title" class="text-lg font-semibold text-white mb-2"></h3>
+        <p id="gen-status" class="text-sm text-gray-400">Discovering story and generating script...</p>
+        <div id="gen-result" class="hidden mt-6">
+            <a id="gen-link" href="#"
+               class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-medium transition inline-block">
+                View Script
+            </a>
+            <button onclick="closeGenModal()" class="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm font-medium transition ml-2">
+                Close
+            </button>
+        </div>
+        <div id="gen-error" class="hidden mt-4">
+            <p class="text-red-400 text-sm mb-4" id="gen-error-msg"></p>
+            <button onclick="closeGenModal()" class="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm font-medium transition">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+}
+
+function refreshTrends() {
+    const btn = document.getElementById('refresh-btn');
+    const icon = document.getElementById('refresh-icon');
+    const text = document.getElementById('refresh-text');
+
+    btn.disabled = true;
+    btn.classList.add('opacity-50');
+    icon.classList.add('animate-spin');
+    text.textContent = 'Fetching...';
+
+    fetch('{% url "refresh_trends" %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            text.textContent = `Got ${data.count} trends!`;
+            setTimeout(() => location.reload(), 800);
+        } else {
+            text.textContent = 'Failed';
+            btn.classList.remove('opacity-50');
+            btn.disabled = false;
+            icon.classList.remove('animate-spin');
+        }
+    })
+    .catch(() => {
+        text.textContent = 'Error';
+        btn.classList.remove('opacity-50');
+        btn.disabled = false;
+        icon.classList.remove('animate-spin');
+    });
+}
+
+function generateFromTrend(trendId, keyword) {
+    document.getElementById('gen-modal-backdrop').classList.remove('hidden');
+    document.getElementById('gen-modal').classList.remove('hidden');
+    document.getElementById('gen-spinner').classList.remove('hidden');
+    document.getElementById('gen-result').classList.add('hidden');
+    document.getElementById('gen-error').classList.add('hidden');
+    document.getElementById('gen-title').textContent = keyword;
+    document.getElementById('gen-status').textContent = 'Discovering story and generating script...';
+    document.body.style.overflow = 'hidden';
+
+    fetch(`/trends/${trendId}/generate/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('gen-spinner').classList.add('hidden');
+        if (data.ok) {
+            document.getElementById('gen-status').textContent = data.passed
+                ? 'Script generated and verified!'
+                : 'Script generated (verification pending).';
+            document.getElementById('gen-link').href = data.redirect;
+            document.getElementById('gen-result').classList.remove('hidden');
+        } else {
+            document.getElementById('gen-error-msg').textContent = data.error || 'Something went wrong';
+            document.getElementById('gen-error').classList.remove('hidden');
+            document.getElementById('gen-status').textContent = '';
+        }
+    })
+    .catch(err => {
+        document.getElementById('gen-spinner').classList.add('hidden');
+        document.getElementById('gen-error-msg').textContent = 'Network error: ' + err.message;
+        document.getElementById('gen-error').classList.remove('hidden');
+        document.getElementById('gen-status').textContent = '';
+    });
+}
+
+function closeGenModal() {
+    document.getElementById('gen-modal-backdrop').classList.add('hidden');
+    document.getElementById('gen-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGenModal(); });
+</script>
+{% endblock %}

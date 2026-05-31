@@ -1,0 +1,7 @@
+django>=5.1,<6.0
+openai>=1.30,<2.0
+tavily-python>=0.5,<1.0
+pytrends>=4.9,<5.0
+requests>=2.31,<3.0
+python-dotenv>=1.0,<2.0
+gunicorn>=22.0,<23.0

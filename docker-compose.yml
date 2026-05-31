@@ -1,0 +1,28 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/app
+      - db-data:/app/db
+    env_file:
+      - .env
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8001"
+    restart: unless-stopped
+
+  generate:
+    build: .
+    volumes:
+      - .:/app
+      - db-data:/app/db
+    env_file:
+      - .env
+    command: python manage.py generate_scripts --count 5
+    profiles:
+      - generate
+
+volumes:
+  db-data:
